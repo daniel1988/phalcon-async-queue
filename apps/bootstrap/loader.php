@@ -1,6 +1,5 @@
 <?php
 use Phalcon\Loader;
-
 $loader = new Loader();
 
 $loader->registerDirs(array(

@@ -10,19 +10,21 @@ class HttpServer {
 
     var $application = null ;
 
+    var $init_phalcon = false ;
+
     public function init_setting( $host, $port, $isdaemon )
     {
         $this->setting = [
             'host'             => $host,    //监听ip
             'port'             => $port,    //监听端口
             'env'              => 'dev',    //环境 dev|test|prod
+            'async'            => 0,
             'open_tcp_nodelay' => 1,    //关闭Nagle算法,提高HTTP服务器响应速度
             'daemonize'        => $isdaemon ? 1 : 0,    //是否守护进程 1=>守护进程| 0 => 非守护进程
             'worker_num'       => 4,    //worker进程 cpu 1-4倍
             'task_worker_num'  => 4,    //task进程
             'task_max_request' => 10000,    //当task进程处理请求超过此值则关闭task进程
-            'process_name'     => SWOOLE_TASK_NAME_PRE. $port, //swoole 进程名称
-            'root'             => SWOOLE_PATH."/app",  //open_basedir 安全措施
+            'process_name'     => SWOOLE_TASK_NAME_PRE.'-'. $port, //swoole 进程名称
             'tmp_dir'          => SWOOLE_PATH."/tmp",
             'log_dir'          => SWOOLE_PATH."/tmp/log",
             'task_tmpdir'      => SWOOLE_PATH."/tmp/task", //task进程临时数据目录
@@ -48,13 +50,33 @@ class HttpServer {
         return $ini['http'];
     }
 
+    public function init_phalcon()
+    {
+        echo "init_phalcon ...\n";
+        if ( $this->init_phalcon ) {
+            return true;
+        }
+        require APP_PATH. '/apps/bootstrap/services.php';
+        require APP_PATH. '/apps/bootstrap/loader.php';
+        //server注入容器
+        $server = $this->http_srv;
+        $di->setShared('server', function () use ($server) {
+            return $server;
+        });
+
+        $this->application = new \Phalcon\Mvc\Application;
+        $this->application->setDI($di);
+        $this->init_phalcon = true;
+
+        echo "init_phalcon success ...\n";
+        return true;
+    }
+
     public function init_swoole( $host='0.0.0.0', $port=9510, $isdaemon = false ) {
         $this->http_srv = new swoole_http_server($host, $port);
 
         $settings = $this->init_setting($host, $port, $isdaemon) ;
         $this->http_srv->set( $settings );
-
-
         $this->http_srv->on('start',  [$this, 'onStart']);
         $this->http_srv->on('workerStart',        [$this, 'onWorkerStart']);
         $this->http_srv->on('managerStart',  [$this, 'onManagerStart']);
@@ -62,6 +84,7 @@ class HttpServer {
         $this->http_srv->on('task', [$this, 'onTask']);
         $this->http_srv->on('finish', [$this, 'onfinish']);
 
+        $this->init_phalcon();
         $this->http_srv->start();
 
     }
@@ -77,17 +100,6 @@ class HttpServer {
 
     public function onWorkerStart( $server, $worker_id )
     {
-        require APP_PATH. '/apps/bootstrap/services.php';
-        require APP_PATH. '/apps/bootstrap/loader.php';
-        //server注入容器
-        $server = $this->http_srv;
-        $di->setShared('server', function () use ($server) {
-            return $server;
-        });
-
-        $this->application = new \Phalcon\Mvc\Application;
-        $this->application->setDI($di);
-
         if ($worker_id >= $this->setting['worker_num']) {
             $this->setProcessName($server->setting['process_name'] . '-task');
         } else {
@@ -104,7 +116,7 @@ class HttpServer {
 
     public function onRequest( $request, $response )
     {
-
+        file_put_contents( APP_PATH . '/tmp/debug.log', var_export( $this->application, true ) );
         //获取swoole服务的当前状态
         if (isset($request->get['cmd']) && $request->get['cmd'] == 'status') {
             $response->end(json_encode($this->http_srv->stats()));
@@ -114,44 +126,24 @@ class HttpServer {
         if ($request->server['request_uri'] == '/favicon.ico' || $request->server['path_info'] == '/favicon.ico') {
             return $response->end();
         }
-        $_SERVER = $request->server;
 
-        //构造url请求路径,phalcon获取到$_GET['_url']时会定向到对应的路径，否则请求路径为'/'
-        $_GET['_url'] = $request->server['request_uri'];
-
-        if ($request->server['request_method'] == 'GET' && isset($request->get)) {
-            foreach ($request->get as $key => $value) {
-                $_GET[$key] = $value;
-                $_REQUEST[$key] = $value;
-            }
+        $setting = $this->getSetting();
+        print_r( $setting ) ;
+        $result = '' ;
+        echo $request->server['request_uri'],"\n";
+        if ( $setting['async'] ) {
+            $this->http_srv->task( $request ) ;
+            $result = json_encode($request) . PHP_EOL;
+        } else {
+            $result = $this->_handle_request( $request ) ;
         }
-        if ($request->server['request_method'] == 'POST' && isset($request->post) ) {
-            foreach ($request->post as $key => $value) {
-                $_POST[$key] = $value;
-                $_REQUEST[$key] = $value;
-            }
-        }
-        $this->http_srv->task( $request ) ;
-
-        $out = json_encode($request) . PHP_EOL;
-        //INFO 立即返回 非阻塞
-        $response->end($out);
-
+        $response->end($result);
     }
 
-    public function onTask( $server, $task_id, $from_id, $data)
+    public function onTask( $server, $task_id, $from_id, $request)
     {
-        //处理请求
-        ob_start();
-        try {
 
-            echo $this->application->handle()->getContent();
-        } catch (Exception $e) {
-            echo $e->getMessage();
-        }
-        $result = ob_get_contents();
-        echo $result ;
-        ob_end_clean();
+        echo $this->_handle_request( $request ) ;
     }
 
     public function onFinish( $server , $task_id , $data )
@@ -172,8 +164,38 @@ class HttpServer {
         }
     }
 
+    private function _handle_request( $request )
+    {
+        //同步处理
+        $_SERVER = $request->server;
+
+        //构造url请求路径,phalcon获取到$_GET['_url']时会定向到对应的路径，否则请求路径为'/'
+        $_GET['_url'] = $request->server['request_uri'];
+
+        if ($request->server['request_method'] == 'GET' && isset($request->get)) {
+            foreach ($request->get as $key => $value) {
+                $_GET[$key] = $value;
+                $_REQUEST[$key] = $value;
+            }
+        }
+        if ($request->server['request_method'] == 'POST' && isset($request->post) ) {
+            foreach ($request->post as $key => $value) {
+                $_POST[$key] = $value;
+                $_REQUEST[$key] = $value;
+            }
+        }
+        //处理请求
+        ob_start();
+        try {
+
+            echo $this->application->handle()->getContent();
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+        $result = ob_get_contents();
+        echo $result ;
+        ob_end_clean();
+        return $result ;
+    }
+
 }
-
-// $httpsrv = new HttpServer();
-
-// $httpsrv->init_swoole('9510');

@@ -85,6 +85,7 @@ function servStart($server, $host, $port, $isdaemon)
                 $server->init_swoole($host, $port, $isdaemon);
             });
             $process->start();
+            var_dump( $process ) ;
             //WARN swoole_process 自定义进程 误报错误，忽略即可
             $wait = 60;
             do {
@@ -382,6 +383,8 @@ if (isset($opts['D']) || isset($opts['nondaemon'])) {
 }
 if (isset($opts['d']) || isset($opts['daemon'])) {
     $isdaemon = 1;
+} else {
+    $isdaemon = 0;
 }
 if ($cmd == 'start') {
     $ret = servStart($server, $host, $port, $isdaemon);

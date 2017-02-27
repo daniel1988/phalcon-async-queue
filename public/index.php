@@ -1,4 +1,5 @@
 <?php
+define('APP_PATH', dirname(__DIR__));
 
 use Phalcon\DI;
 use Phalcon\Loader;
