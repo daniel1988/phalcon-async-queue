@@ -34,3 +34,6 @@ $ php swoole.php -d -h 127.0.0.1 -p9510 start
 ```
 >　以swoole_process启动时遇到php中exit与die函数时会导致swoole_process退出，可不用理会
 
+
+
+
