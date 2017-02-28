@@ -85,7 +85,6 @@ function servStart($server, $host, $port, $isdaemon)
                 $server->init_swoole($host, $port, $isdaemon);
             });
             $process->start();
-            var_dump( $process ) ;
             //WARN swoole_process 自定义进程 误报错误，忽略即可
             $wait = 60;
             do {
@@ -99,7 +98,6 @@ function servStart($server, $host, $port, $isdaemon)
                 }
                 $wait--;
             } while (true);
-
         } else {
             $server->init_swoole($host, $port, $isdaemon);
         }

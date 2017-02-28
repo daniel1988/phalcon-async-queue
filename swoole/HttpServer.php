@@ -14,14 +14,14 @@ class HttpServer {
 
     public function init_setting( $host, $port, $isdaemon )
     {
-        $this->setting = [
+        $ini_setting = [
             'host'             => $host,    //监听ip
             'port'             => $port,    //监听端口
             'env'              => 'dev',    //环境 dev|test|prod
-            'async'            => 0,
+            'async'            => 1,
             'open_tcp_nodelay' => 1,    //关闭Nagle算法,提高HTTP服务器响应速度
             'daemonize'        => $isdaemon ? 1 : 0,    //是否守护进程 1=>守护进程| 0 => 非守护进程
-            'worker_num'       => 4,    //worker进程 cpu 1-4倍
+            'worker_num'       => 1,    //worker进程 cpu 1-4倍
             'task_worker_num'  => 4,    //task进程
             'task_max_request' => 10000,    //当task进程处理请求超过此值则关闭task进程
             'process_name'     => SWOOLE_TASK_NAME_PRE.'-'. $port, //swoole 进程名称
@@ -32,27 +32,34 @@ class HttpServer {
             'pid_file'         => SWOOLE_PATH."/tmp/".SWOOLE_TASK_PID_PRE."-{$port}.pid",
         ];
 
-        $cfg_file = SWOOLE_PATH . DS . 'config' . DS . 'swoole.ini';
+        $cfg_file = SWOOLE_PATH . DS . 'config' . DS . "swoole.ini";
 
-        $iniSetting = '[http]' . PHP_EOL;
-        foreach ($this->setting as $k => $v) {
-            $iniSetting .= "{$k} = {$v}" . PHP_EOL;
+        if ( file_exists($cfg_file) ) {
+            $ini_setting = $this->getSetting() ;
+            $ini_setting['port'] = $port;
+            $ini_setting['host'] = $host;
         }
+        $setting_str = '[http]' . PHP_EOL;
+        foreach ($ini_setting as $k => $v) {
+            $setting_str .= "{$k} = {$v}" . PHP_EOL;
+        }
+        file_put_contents($cfg_file, $setting_str);
 
-        file_put_contents($cfg_file, $iniSetting);
-
+        $this->setting = $ini_setting;
         return $this->setting;
     }
 
     public function getSetting() {
         $cfg_file = SWOOLE_PATH . DS . 'config' . DS . 'swoole.ini';
-        $ini = parse_ini_file($cfg_file, true);
-        return $ini['http'];
+        if ( file_exists($cfg_file) ) {
+            $ini = parse_ini_file($cfg_file, true);
+            return $ini['http'];
+        }
+        return $this->setting;
     }
 
     public function init_phalcon()
     {
-        echo "init_phalcon ...\n";
         if ( $this->init_phalcon ) {
             return true;
         }
@@ -72,7 +79,7 @@ class HttpServer {
         return true;
     }
 
-    public function init_swoole( $host='0.0.0.0', $port=9510, $isdaemon = false ) {
+    public function init_swoole( $host='127.0.0.1', $port=9510, $isdaemon = false ) {
         $this->http_srv = new swoole_http_server($host, $port);
 
         $settings = $this->init_setting($host, $port, $isdaemon) ;
@@ -86,7 +93,7 @@ class HttpServer {
 
         $this->init_phalcon();
         $this->http_srv->start();
-
+        return $this->http_srv;
     }
 
     public function onStart( $server )
@@ -116,7 +123,6 @@ class HttpServer {
 
     public function onRequest( $request, $response )
     {
-        file_put_contents( APP_PATH . '/tmp/debug.log', var_export( $this->application, true ) );
         //获取swoole服务的当前状态
         if (isset($request->get['cmd']) && $request->get['cmd'] == 'status') {
             $response->end(json_encode($this->http_srv->stats()));
@@ -128,7 +134,6 @@ class HttpServer {
         }
 
         $setting = $this->getSetting();
-        print_r( $setting ) ;
         $result = '' ;
         echo $request->server['request_uri'],"\n";
         if ( $setting['async'] ) {
@@ -142,13 +147,13 @@ class HttpServer {
 
     public function onTask( $server, $task_id, $from_id, $request)
     {
-
-        echo $this->_handle_request( $request ) ;
+        $this->_handle_request( $request ) ;
+        $this->log('task', print_r($request,true));
     }
 
     public function onFinish( $server , $task_id , $data )
     {
-        var_dump( 'onFinish', func_get_args() ) ;
+        $this->log('finish', print_r(func_get_args(), true));
     }
 
     function setProcessName($name)
@@ -196,6 +201,13 @@ class HttpServer {
         echo $result ;
         ob_end_clean();
         return $result ;
+    }
+
+    public function log($file, $message)
+    {
+        $log_file = SWOOLE_PATH . '/tmp/task/' . $file . '-' . date('Y-m-d') . '.log';
+        $message = sprintf("[%s]\n%s", date('Y-m-d H:i:s'), $message);
+        file_put_contents( $log_file, $message, FILE_APPEND );
     }
 
 }
