@@ -35,5 +35,53 @@ $ php swoole.php -d -h 127.0.0.1 -p9510 start
 >　以swoole_process启动时遇到php中exit与die函数时会导致swoole_process退出，可不用理会
 
 
+## 进程列表
+```
+$ php swoole.php list
+ps aux|grep http-swoole|grep -v grep|awk '{print $1, $2, $6, $8, $9, $11}'
+本机运行的swoole-task服务进程
+USER PID RSS(kb) STAT START COMMAND
+daniell+ 8445 12992 Ssl 11:06 http-swoole-9510-master
+daniell+ 8446 12136 S 11:06 http-swoole-9510-manager
+daniell+ 8453 15504 S 11:06 http-swoole-9510-task
+daniell+ 8454 15504 S 11:06 http-swoole-9510-task
+daniell+ 8455 15504 S 11:06 http-swoole-9510-task
+daniell+ 8456 15504 S 11:06 http-swoole-9510-task
+daniell+ 8457 14364 S 11:06 http-swoole-9510-event
+```
+
+## 运行状态
+
+```
+$ php swoole.php status
+swoole-task 127.0.0.1:9510 运行状态
+start_time: 1488251169
+connection_num: 2
+accept_count:   12
+close_count:    10
+tasking_num:    0
+request_count:  23
+worker_request_count:   23
+```
+
+## 重启与关闭
+```
+$ php swoole.php -d -p 9510 restart
+重启swoole-task服务
+swoole-task 服务终止开始
+正在关闭服务:0 s
+执行命令 kill 8445 成功，端口 :9510 进程结束
+正在启动 swoole-task 服务
+init_phalcon success ...
+启动 swoole-task 服务成功
+[2017-02-28 11:10:14 @8697.0]   ERROR   zm_deactivate_swoole (ERROR 9003): worker process is terminated by exit()/die()
+
+
+$ php swoole.php -p 9510 stop
+swoole-task 服务终止开始
+正在关闭服务:0 s
+执行命令 kill 8717 成功，端口 :9510 进程结束
+
+```
 
 

@@ -6,3 +6,7 @@
 /index/test
 /index/test
 /index/test
+[2017-02-28 11:10:12 #8445.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 11:10:13	 swoole_http_server master worker start
+Date:2017-02-28 11:10:14	 swoole_http_server manager worker start
+[2017-02-28 11:10:40 #8717.0]	NOTICE	Server is shutdown now.
