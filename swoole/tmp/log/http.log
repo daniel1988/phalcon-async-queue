@@ -1,27 +1,8 @@
 /index/index
 /index/index
 /index/index
-[2017-02-28 10:31:42 #6511.0]	NOTICE	Server is shutdown now.
-Date:2017-02-28 10:31:43	 swoole_http_server master worker start
-Date:2017-02-28 10:31:43	 swoole_http_server manager worker start
-/index/index
-[2017-02-28 10:32:23 #6662.0]	NOTICE	Server is shutdown now.
-Date:2017-02-28 10:32:24	 swoole_http_server master worker start
-Date:2017-02-28 10:32:24	 swoole_http_server manager worker start
-Date:2017-02-28 10:32:43	 swoole_http_server master worker start
-Date:2017-02-28 10:32:43	 swoole_http_server manager worker start
-/index/index
-Date:2017-02-28 10:38:12	 swoole_http_server master worker start
-Date:2017-02-28 10:38:12	 swoole_http_server manager worker start
 /index/index
 /index/index
-/index/index
-/index/index
-[2017-02-28 10:41:19 #6948.0]	NOTICE	Server is shutdown now.
-Date:2017-02-28 10:51:15	 swoole_http_server master worker start
-Date:2017-02-28 10:51:15	 swoole_http_server manager worker start
-/index/index
-/index/index
-/index/index
-/index/index
-/index/index
+/index/test
+/index/test
+/index/test

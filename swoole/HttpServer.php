@@ -14,7 +14,7 @@ class HttpServer {
 
     public function init_setting( $host, $port, $isdaemon )
     {
-        $ini_setting = [
+        $this->setting = [
             'host'             => $host,    //监听ip
             'port'             => $port,    //监听端口
             'env'              => 'dev',    //环境 dev|test|prod
@@ -34,10 +34,13 @@ class HttpServer {
 
         $cfg_file = SWOOLE_PATH . DS . 'config' . DS . "swoole.ini";
 
+        $ini_setting = [];
         if ( file_exists($cfg_file) ) {
             $ini_setting = $this->getSetting() ;
-            $ini_setting['port'] = $port;
-            $ini_setting['host'] = $host;
+            $ini_setting['port']            = $port;
+            $ini_setting['host']            = $host;
+            $ini_setting['process_name']    = $this->setting['process_name'];
+            $ini_setting['pid_file']        = $this->setting['pid_file'];
         }
         $setting_str = '[http]' . PHP_EOL;
         foreach ($ini_setting as $k => $v) {
