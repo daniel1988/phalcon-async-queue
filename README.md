@@ -85,3 +85,14 @@ swoole-task 服务终止开始
 ```
 
 
+## curl 请求任务
+```
+$ curl -s 127.0.0.1:9510/index/test
+{"fd":1,"header":{"user-agent":"curl\/7.35.0","host":"127.0.0.1:9510","accept":"*\/*"},"server":{"request_method":"GET","request_uri":"\/index\/test","path_info":"\/index\/test","request_time":1488273447,"request_time_float":1488273447.5239,"server_port":9510,"remote_port":41284,"remote_addr":"127.0.0.1","server_protocol":"HTTP\/1.1","server_software":"swoole-http-server"},"data":"GET \/index\/test HTTP\/1.1\r\nUser-Agent: curl\/7.35.0\r\nHost: 127.0.0.1:9510\r\nAccept: *\/*\r\n\r\n"}
+
+```
+> 请求返回的是swoole 的request
+
+
+
+

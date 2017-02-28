@@ -10,3 +10,26 @@
 Date:2017-02-28 11:10:13	 swoole_http_server master worker start
 Date:2017-02-28 11:10:14	 swoole_http_server manager worker start
 [2017-02-28 11:10:40 #8717.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 13:47:36	 swoole_http_server master worker start
+Date:2017-02-28 13:47:36	 swoole_http_server manager worker start
+/index/test
+[2017-02-28 14:17:41 #12698.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:17:42	 swoole_http_server master worker start
+Date:2017-02-28 14:17:42	 swoole_http_server manager worker start
+/index/test
+[2017-02-28 14:19:27 #13625.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:19:28	 swoole_http_server master worker start
+Date:2017-02-28 14:19:28	 swoole_http_server manager worker start
+[2017-02-28 14:19:31 #13711.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:19:32	 swoole_http_server master worker start
+Date:2017-02-28 14:19:32	 swoole_http_server manager worker start
+[2017-02-28 14:19:34 #13745.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:19:35	 swoole_http_server master worker start
+Date:2017-02-28 14:19:35	 swoole_http_server manager worker start
+[2017-02-28 14:19:36 #13776.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:19:37	 swoole_http_server master worker start
+Date:2017-02-28 14:19:37	 swoole_http_server manager worker start
+[2017-02-28 14:19:39 #13807.0]	NOTICE	Server is shutdown now.
+Date:2017-02-28 14:19:40	 swoole_http_server master worker start
+Date:2017-02-28 14:19:40	 swoole_http_server manager worker start
+/index/test
