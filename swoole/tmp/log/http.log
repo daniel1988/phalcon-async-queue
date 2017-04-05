@@ -33,3 +33,8 @@ Date:2017-02-28 14:19:37	 swoole_http_server manager worker start
 Date:2017-02-28 14:19:40	 swoole_http_server master worker start
 Date:2017-02-28 14:19:40	 swoole_http_server manager worker start
 /index/test
+[2017-03-03 18:05:38 #13838.0]	NOTICE	Server is shutdown now.
+Date:2017-04-05 15:58:56	 swoole_http_server master worker start
+Date:2017-04-05 15:58:56	 swoole_http_server manager worker start
+[2017-04-05 15:59:41 #21127.0]	NOTICE	Server is shutdown now.
+[2017-04-05 16:05:25 #21440.0]	NOTICE	Server is shutdown now.
